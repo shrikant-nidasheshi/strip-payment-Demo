@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stripe Payment Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <main class="shell">
+    <!-- LEFT: order summary + live card -->
+    <section class="panel summary">
+      <div class="badge"><span class="dot"></span> TEST MODE · No real money</div>
+      <h1>Complete your<br/>payment</h1>
+      <p class="muted">A secure demo checkout powered by Stripe Elements.</p>
+
+      <div class="card-visual" id="cardVisual">
+        <div class="cv-top">
+          <div class="chip"></div>
+          <div class="cv-brand" id="cvBrand">CARD</div>
+        </div>
+        <div class="cv-number" id="cvNumber">•••• •••• •••• ••••</div>
+        <div class="cv-bottom">
+          <div><small>CARDHOLDER</small><div id="cvName">YOUR NAME</div></div>
+          <div><small>AMOUNT</small><div id="cvAmount">$0.00</div></div>
+        </div>
+      </div>
+
+      <div class="hints">
+        <div class="hints-title">Test cards <span class="muted">(click to copy)</span></div>
+        <button class="hint ok" data-card="4242424242424242"><b>4242 4242 4242 4242</b><span>Succeeds</span></button>
+        <button class="hint bad" data-card="4000000000000002"><b>4000 0000 0000 0002</b><span>Declined</span></button>
+        <button class="hint bad" data-card="4000000000009995"><b>4000 0000 0000 9995</b><span>Insufficient funds</span></button>
+        <button class="hint warn" data-card="4000002500003155"><b>4000 0025 0000 3155</b><span>Needs 3D Secure</span></button>
+        <div class="muted small">Any future expiry · any 3-digit CVC</div>
+      </div>
+    </section>
+
+    <!-- RIGHT: form / result -->
+    <section class="panel form-panel">
+      <form id="payForm" novalidate>
+        <label class="field">
+          <span>Amount (USD)</span>
+          <div class="amount-wrap">
+            <i>$</i>
+            <input id="amount" type="number" inputmode="decimal" min="0.5" step="0.01" value="5.00" />
+          </div>
+          <div class="chips">
+            <button type="button" data-amt="5">$5</button>
+            <button type="button" data-amt="10">$10</button>
+            <button type="button" data-amt="25">$25</button>
+            <button type="button" data-amt="100">$100</button>
+          </div>
+          <em class="err" id="err-amount"></em>
+        </label>
+
+        <label class="field">
+          <span>Cardholder name</span>
+          <input id="name" type="text" placeholder="John Doe" autocomplete="cc-name" />
+          <em class="err" id="err-name"></em>
+        </label>
+
+        <div class="field">
+          <span>Card number</span>
+          <div class="stripe-box" id="cardNumber"></div>
+          <em class="err" id="err-cardNumber"></em>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <span>Expiry</span>
+            <div class="stripe-box" id="cardExpiry"></div>
+            <em class="err" id="err-cardExpiry"></em>
+          </div>
+          <div class="field">
+            <span>CVC</span>
+            <div class="stripe-box" id="cardCvc"></div>
+            <em class="err" id="err-cardCvc"></em>
+          </div>
+        </div>
+
+        <button class="pay-btn" id="payBtn" type="submit">
+          <span class="btn-label">Pay <b id="btnAmount">$5.00</b></span>
+          <span class="spinner"></span>
+        </button>
+        <p class="secure">🔒 Card details are handled by Stripe and never touch our server.</p>
+      </form>
+
+      <!-- Result (Gateway Confirmation / Receipt) -->
+      <div id="result" class="result hidden">
+        <div class="result-header">
+          <div class="icon-wrap">
+            <div class="icon" id="resIcon"></div>
+          </div>
+          <h2 id="resTitle">Payment Succeeded</h2>
+          <p class="muted" id="resMsg"></p>
+        </div>
+
+        <div class="receipt-card" id="receiptCard">
+          <div class="receipt-top">
+            <span class="receipt-label" id="resAmountLabel">Amount Paid</span>
+            <div class="receipt-amount" id="resAmountDisplay">$0.00 <span class="receipt-curr" id="resCurrDisplay">USD</span></div>
+            <div class="receipt-status-badge" id="resStatusBadge">
+              <span class="status-dot"></span>
+              <span id="resStatusText">COMPLETED</span>
+            </div>
+          </div>
+
+          <div class="receipt-divider">
+            <div class="notch notch-left"></div>
+            <div class="divider-line"></div>
+            <div class="notch notch-right"></div>
+          </div>
+
+          <div class="receipt-body" id="resDetails"></div>
+        </div>
+
+        <div class="result-actions">
+          <button class="pay-btn" id="againBtn">Make another payment</button>
+          <button class="ghost-btn" id="printBtn" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Receipt
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

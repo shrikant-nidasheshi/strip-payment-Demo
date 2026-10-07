@@ -1,0 +1,62 @@
+{
+  "info": {
+    "name": "Stripe Payment Demo",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Set environment variable STRIPE_SECRET_KEY (sk_test_...). Run requests 01 -> 02 -> 03 in order."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{STRIPE_SECRET_KEY}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "01 - Create PaymentMethod",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "const j = pm.response.json();",
+        "pm.test('PaymentMethod created', () => pm.expect(j.id).to.match(/^pm_/));",
+        "pm.environment.set('PAYMENT_METHOD_ID', j.id);"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+        "body": { "mode": "urlencoded", "urlencoded": [
+          { "key": "type", "value": "card" },
+          { "key": "card[token]", "value": "tok_visa" }
+        ]},
+        "url": { "raw": "https://api.stripe.com/v1/payment_methods", "protocol": "https", "host": ["api","stripe","com"], "path": ["v1","payment_methods"] }
+      }
+    },
+    {
+      "name": "02 - Create PaymentIntent (confirm)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "const j = pm.response.json();",
+        "pm.test('PaymentIntent succeeded', () => pm.expect(j.status).to.eql('succeeded'));",
+        "pm.environment.set('PAYMENT_INTENT_ID', j.id);"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+        "body": { "mode": "urlencoded", "urlencoded": [
+          { "key": "amount", "value": "500" },
+          { "key": "currency", "value": "usd" },
+          { "key": "payment_method", "value": "{{PAYMENT_METHOD_ID}}" },
+          { "key": "confirm", "value": "true" },
+          { "key": "automatic_payment_methods[enabled]", "value": "true" },
+          { "key": "automatic_payment_methods[allow_redirects]", "value": "never" }
+        ]},
+        "url": { "raw": "https://api.stripe.com/v1/payment_intents", "protocol": "https", "host": ["api","stripe","com"], "path": ["v1","payment_intents"] }
+      }
+    },
+    {
+      "name": "03 - Retrieve PaymentIntent",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is succeeded', () => pm.expect(pm.response.json().status).to.eql('succeeded'));"
+      ]}}],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "https://api.stripe.com/v1/payment_intents/{{PAYMENT_INTENT_ID}}", "protocol": "https", "host": ["api","stripe","com"], "path": ["v1","payment_intents","{{PAYMENT_INTENT_ID}}"] }
+      }
+    }
+  ]
+}
